@@ -1,3 +1,10 @@
+/*
+ * Values in this file are from Indian Standard IS 919-1 (1993),
+ * released under the "Right to Information" act and quotes as
+ * "identical to ISO 286".  As these represent bare facts, they are
+ * believed to be in the public domain.
+
+*/
 var limits = [
 //                                                                      a    b    c   d   e   f   g   h   m    n    p    r    s    t     u  v  x  y  z
     { "lower_limit": 0,    "upper_limit": 3,    "limits": [undefined, 0.8, 1.2, 2.0,  3,  4,  6, 10, 14, 25,  40,  60, 100, 140, 250,  400,  600, 1000, 1400] },
