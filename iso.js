@@ -40,7 +40,14 @@ function limitFor(size,limitID) {
     return parseInt("999999999999");
 }
 
-function fitFor(size,fit_id) {
+function processSpecial(size,fIndex,limit){
+    switch(fIndex){
+        case 20: // JS = mirror around nominal
+            return {"boundary": limit / -2.0, "direction": 1};
+            
+    }
+}
+function fitFor(size,fit_id,limit) {
     if(typeof(fit_id) == 'undefined') {
         return undefined;
     }
@@ -49,29 +56,45 @@ function fitFor(size,fit_id) {
         return undefined;
     }
 
-    var fid = fit_id.charAt(0).toLowerCase();
+    //var fid = fit_id.charAt(0).toLowerCase();
+    var fid = fit_id.toLowerCase();
     var fIndex;
     for(var i=0; i<fits_decode.length; i++) {
         if(fits_decode[i] == fid) fIndex = i;
     }
 
+    var isSpecial = false;
+    if(fIndex > 18){
+        isSpecial = true;
+    }
+
     var boundary;
+    var fit;
     for(var i=0; i<fits.length; i++) {
-        var fit = fits[i];
+        fit = fits[i];
         if(safeSize > fit.lower_limit && safeSize <= fit.upper_limit) {
-            if(fit_id == "D"){
-                //alert("Returning boundary "+fit.fits[fIndex]+" and direction "+fits_direction[fIndex] + "for "+fit_id);
-            }
-            return {"boundary": fit.fits[fIndex], "direction": fits_direction[fIndex]};
+            break;
         }
 
+    }
+    if(typeof fit == 'undefined'){
+        return undefined;
+    }
+
+    if(!isSpecial){
+        console.log("Processing a regular ["+size+" "+fIndex+" "+limit+"]");
+        return {"boundary": fit.fits[fIndex], "direction": fits_direction[fIndex]};
+    }else{
+        console.log("Processing a special ["+size+" "+fIndex+" "+limit+"]");
+        return processSpecial(size,fIndex,limit);
     }
 
     return undefined;
 }
 
 function parseBasis(basisStr) {
-    var re = /^([0-9.]*)?([A-Za-z])?([0-9]*)?/;
+    console.log("Parsing basis ["+basisStr+"]");
+    var re = /^([0-9.]*)?([A-Za-z]+)?([0-9]*)?/;
     var matches = basisStr.match(re);
     if(matches === null) {
         return undefined;
@@ -79,11 +102,11 @@ function parseBasis(basisStr) {
     var sizeStr =  matches[1];
     var size = parseFloat(sizeStr);
 
-    var fitStr = matches[2];
-    var fit = fitFor(size,fitStr);
-
     var limitStr = matches[3];
     var limit = limitFor(size,limitStr);
+
+    var fitStr = matches[2];
+    var fit = fitFor(size,fitStr,limit);
 
     var isShaft = (typeof fitStr != "undefined" && fitStr == fitStr.toLowerCase());
 
@@ -113,8 +136,8 @@ function parseBasis(basisStr) {
 
     return {
         "basisStr": basisStr, "sizeStr": sizeStr, "size": size,
-        "fit_str": fitStr, "fit": fitFor(size,fitStr),
-        "limit_str": limitStr, "limit": limitFor(size,limitStr),
+        "fit_str": fitStr, "fit": fit,
+        "limit_str": limitStr, "limit": limit,
         "isShaft": isShaft, "upperLimit": upperLimit , "lowerLimit": lowerLimit
         };
 
@@ -124,14 +147,17 @@ function calc(element) {
     for(var i=1;i<10;i++){
         var el_name = "element_"+i+"_basis";
         var e = el(el_name);
-        if(typeof e != "undefined" && e != null) els.push(e);
+        if(typeof e != "undefined" && e != null && e.value !== "") els.push(e);
     }
 
     var bases = [];
 
     for(var i =0; i<els.length; i++) {
         var b = parseBasis(els[i].value);
-        if(typeof b != "undefined" && typeof b.limit_str != "undefined" && b.limit_str.length > 0) bases.push(b);
+        if(typeof b != "undefined" && typeof b.limit_str != "undefined" && b.limit_str.length > 0){
+            bases.push(b);
+            console.log("Adding basis "+JSON.stringify(b));
+        }
     }
     draw_bases(bases);
 

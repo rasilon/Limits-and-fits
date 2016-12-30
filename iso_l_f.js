@@ -6,7 +6,8 @@
 
 */
 var limits = [
-//                                                                      a    b    c   d   e   f   g   h   m    n    p    r    s    t     u  v  x  y  z
+    //                                                     This defines the "spread" of allowable values
+    //                                                     No IT0     IT1  IT2  IT3 IT4 IT5 IT6 IT7 IT8 IT9 IT10 IT11 IT12 IT13 IT14  IT15  IT16  IT17  IT18
     { "lower_limit": 0,    "upper_limit": 3,    "limits": [undefined, 0.8, 1.2, 2.0,  3,  4,  6, 10, 14, 25,  40,  60, 100, 140, 250,  400,  600, 1000, 1400] },
     { "lower_limit": 3,    "upper_limit": 6,    "limits": [undefined, 1.0, 1.5, 2.5,  4,  5,  8, 12, 18, 30,  48,  75, 120, 180, 300,  480,  750, 1200, 1800] },
     { "lower_limit": 6,    "upper_limit": 10,   "limits": [undefined, 1.0, 1.5, 2.5,  4,  6,  9, 15, 22, 36,  58,  90, 150, 220, 360,  580,  900, 1500, 2200] },
@@ -17,19 +18,21 @@ var limits = [
     { "lower_limit": 80,   "upper_limit": 120,  "limits": [undefined, 2.5, 4.0, 6.0, 10, 15, 22, 35, 54, 87, 140, 220, 350, 540, 870, 1400, 2200, 2500, 5400] }
 ];
 
-var fits_decode =    ["a", "b", "c", "d", "e", "f", "g", "h", "m", "n", "p", "r", "s", "t", "u", "v", "x", "y", "z"]; // Ignore the complex ones for now.
+//                     0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20    21
+var fits_decode =    ["a", "b", "c", "d", "e", "f", "g", "h", "m", "n", "p", "r", "s", "t", "u", "v", "x", "y", "z", "j", "js", "k"];
 
 // Encoding direction here, rather than signing the offset, so we can special case the specials when we get round to them
-//                      a   b   c   d   e   f   g   h   m    n  p  r  s  t  u  v  x  y  z
-var fits_direction = [ -1, -1, -1, -1, -1, -1, -1, -1,  1,   1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // 1 = MMC, -1 = LMC, 0 = Special
-var fits = [                                             //  a    b    c   d   e   f  g  h    m   n   p   r   s   t   u   v   x   y   z
-    { "lower_limit": 0,    "upper_limit": 3,    "fits":  [ 270, 140,  60, 20, 14,  6, 2, 0,   2,  4,  6, 10, 14, 14, 18, 18, 20, 20, 26 ] },
-    { "lower_limit": 3,    "upper_limit": 6,    "fits":  [ 270, 140,  70, 30, 20, 10, 4, 0,   4,  8, 12, 15, 19, 19, 23, 23, 28, 28, 35 ] },
-    { "lower_limit": 6,    "upper_limit": 10,   "fits":  [ 280, 150,  95, 40, 25, 13, 5, 0,   6, 10, 15, 19, 23, 23, 28, 28, 34, 34, 42 ] },
-    { "lower_limit": 10,   "upper_limit": 18,   "fits":  [ 290, 150,  95, 50, 32, 16, 6, 0,   7, 12, 18, 23, 28, 28, 33, 33, 40, 40, 50 ] },
-    { "lower_limit": 18,   "upper_limit": 30,   "fits":  [ 300, 160, 110, 65, 40, 20, 7, 0,   7, 12, 18, 23, 28, 28, 33, 39, 45, 45, 60 ] },
-    { "lower_limit": 30,   "upper_limit": 40,   "fits":  [ 310, 170, 120, 80, 50, 25, 9, 0,   8, 15, 22, 28, 35, 35, 41, 47, 54, 63, 73 ] },
-    { "lower_limit": 40,   "upper_limit": 50,   "fits":  [ 320, 180, 130, 80, 50, 25, 9, 0,   8, 15, 22, 28, 35, 41, 48, 55, 64, 75, 88 ] }
+//                      a   b   c   d   e   f   g   h   m    n  p  r  s  t  u  v  x  y  z  j js  k
+var fits_direction = [ -1, -1, -1, -1, -1, -1, -1, -1,  1,   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0]; // 1 = MMC, -1 = LMC, 0 = Special
+var fits = [                                             //  a    b    c   d   e   f  g  h    m   n   p   r   s   t   u   v   x   y   z js
+    // This defines the "offset" from the nominal values
+    { "lower_limit": 0,    "upper_limit": 3,    "fits":  [ 270, 140,  60, 20, 14,  6, 2, 0,   2,  4,  6, 10, 14, 14, 18, 18, 20, 20, 26, 0 ] },
+    { "lower_limit": 3,    "upper_limit": 6,    "fits":  [ 270, 140,  70, 30, 20, 10, 4, 0,   4,  8, 12, 15, 19, 19, 23, 23, 28, 28, 35, 0 ] },
+    { "lower_limit": 6,    "upper_limit": 10,   "fits":  [ 280, 150,  95, 40, 25, 13, 5, 0,   6, 10, 15, 19, 23, 23, 28, 28, 34, 34, 42, 0 ] },
+    { "lower_limit": 10,   "upper_limit": 18,   "fits":  [ 290, 150,  95, 50, 32, 16, 6, 0,   7, 12, 18, 23, 28, 28, 33, 33, 40, 40, 50, 0 ] },
+    { "lower_limit": 18,   "upper_limit": 30,   "fits":  [ 300, 160, 110, 65, 40, 20, 7, 0,   7, 12, 18, 23, 28, 28, 33, 39, 45, 45, 60, 0 ] },
+    { "lower_limit": 30,   "upper_limit": 40,   "fits":  [ 310, 170, 120, 80, 50, 25, 9, 0,   8, 15, 22, 28, 35, 35, 41, 47, 54, 63, 73, 0 ] },
+    { "lower_limit": 40,   "upper_limit": 50,   "fits":  [ 320, 180, 130, 80, 50, 25, 9, 0,   8, 15, 22, 28, 35, 41, 48, 55, 64, 75, 88, 0 ] }
 ];
 
 var tooling = [
